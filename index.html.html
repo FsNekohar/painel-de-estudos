@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Painel de Estudos CyberPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Rolagens sutis estilo Cyberpunk */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 4px; transition: background 0.3s; }
+        ::-webkit-scrollbar-thumb:hover { background: #9333ea; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans flex h-screen overflow-hidden antialiased">
+
+    <aside class="w-64 bg-gray-900 border-r border-gray-800/80 p-4 flex flex-col justify-between shrink-0 z-10 shadow-2xl">
+        <div class="flex flex-col gap-4 overflow-y-auto pr-1">
+            <div class="flex items-center gap-2 pb-2 border-b border-gray-800">
+                <span class="text-2xl animate-pulse">📚</span>
+                <h2 class="text-md font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent uppercase tracking-wider">Meus Estudos</h2>
+            </div>
+            <nav id="subjects-nav" class="flex flex-col gap-1.5">
+                </nav>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-800 bg-gray-900">
+            <input type="text" id="new-subject-name" placeholder="Nova Matéria (Ex: História)..." 
+                   class="w-full p-2.5 text-xs bg-gray-950 border border-gray-800 rounded-lg focus:outline-none focus:border-purple-500/60 text-white mb-2 transition-all duration-300">
+            <button onclick="createNewSubject()" 
+                    class="w-full bg-purple-900/40 hover:bg-purple-700 border border-purple-500/30 hover:border-purple-500 text-purple-200 text-xs font-semibold py-2.5 rounded-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-purple-950/20">
+                + Criar Matéria
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col md:flex-row h-full overflow-hidden">
+        
+        <section class="w-full md:w-80 border-r border-gray-800/80 p-4 bg-gray-900/40 flex flex-col justify-between shrink-0">
+            <div class="overflow-y-auto flex-1 pr-1">
+                <h3 id="tab-title" class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Arquivos</h3>
+                <ul id="files-list" class="flex flex-col gap-2">
+                    </ul>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-gray-800 flex flex-col gap-2 bg-transparent">
+                <h4 class="text-[11px] font-bold text-purple-400 uppercase tracking-wide">Adicionar Link ou ID:</h4>
+                <input type="text" id="new-file-name" placeholder="Nome (Ex: Exercícios de Álgebra)" 
+                       class="w-full p-2.5 text-xs bg-gray-950 border border-gray-800 rounded-lg focus:outline-none focus:border-purple-500/60 text-white transition-all duration-300">
+                <input type="text" id="new-file-id" placeholder="Link da pasta ou arquivo do Drive" 
+                       class="w-full p-2.5 text-xs bg-gray-950 border border-gray-800 rounded-lg focus:outline-none focus:border-purple-500/60 text-white transition-all duration-300">
+                <button onclick="createNewFile()" 
+                        class="w-full bg-emerald-950/40 hover:bg-emerald-700 border border-emerald-500/30 hover:border-emerald-500 text-emerald-200 text-xs font-semibold py-2.5 rounded-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-emerald-950/20">
+                    + Adicionar ao Painel
+                </button>
+            </div>
+        </section>
+
+        <section class="flex-1 bg-gray-950 p-4 flex flex-col lg:flex-row gap-4 overflow-hidden">
+            
+            <div class="flex-1 flex flex-col h-full min-w-0">
+                <div class="flex justify-between items-center mb-2 bg-gray-900/30 p-2 rounded-lg border border-gray-900">
+                    <span id="current-file-name" class="text-xs font-medium text-gray-400 truncate max-w-md">Nenhum elemento selecionado</span>
+                    <a id="open-external" href="#" target="_blank" class="text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors hidden flex items-center gap-1">
+                        Abrir Original <span class="text-[10px]">↗</span>
+                    </a>
+                </div>
+                <div class="flex-1 bg-gray-900/40 border border-gray-800/60 rounded-xl overflow-hidden flex items-center justify-center relative shadow-inner">
+                    <iframe id="drive-viewer" class="w-full h-full hidden border-none" allow="autoplay"></iframe>
+                    <div id="viewer-placeholder" class="text-center p-6 flex flex-col items-center gap-3">
+                        <span class="text-4xl opacity-30 text-purple-400 animate-pulse">🔮</span>
+                        <p class="text-gray-500 text-xs max-w-xs leading-relaxed">Selecione uma matéria na barra lateral e clique em qualquer link ou pasta cadastrada para renderizar o visualizador.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-72 bg-gray-900/60 border border-gray-800/80 rounded-xl p-4 flex flex-col h-full shrink-0 shadow-lg">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <span class="text-purple-400">⚡</span> Minhas Metas
+                </h3>
+                
+                <div id="todo-list" class="flex-1 overflow-y-auto flex flex-col gap-2 mb-3 pr-1">
+                    </div>
+
+                <div class="flex gap-1.5 pt-2 border-t border-gray-800/60">
+                    <input type="text" id="new-todo-text" placeholder="Ex: Resolver lista de física..." 
+                           class="flex-1 p-2 text-xs bg-gray-950 border border-gray-800 rounded-lg focus:outline-none focus:border-purple-500/60 text-white transition-all duration-300">
+                    <button onclick="addTodo()" class="bg-purple-700 hover:bg-purple-600 active:scale-95 px-3 rounded-lg text-sm font-bold transition-all duration-300">+</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Dados Padrão (Carregados apenas no primeiro acesso do usuário)
+        const defaultData = {
+            programacao: { title: "💻 Programação", files: [{ name: "Pasta de Projetos Exemplo", driveId: "1yUj7cFsuLWXDSLm6xSwF7aNGGVKhrLTP" }] },
+            matematica: { title: "📐 Matemática", files: [] },
+            ingles: { title: "🇬🇧 Inglês", files: [] }
+        };
+
+        // Estados Globais
+        let studyData = JSON.parse(localStorage.getItem('studyData')) || defaultData;
+        let todoData = JSON.parse(localStorage.getItem('todoData')) || [];
+        let currentTab = Object.keys(studyData)[0] || '';
+        let activeFileId = null;
+
+        function saveToStorage() {
+            localStorage.setItem('studyData', JSON.stringify(studyData));
+            localStorage.setItem('todoData', JSON.stringify(todoData));
+        }
+
+        // Conversor Inteligente: Identifica Links de Pastas/Arquivos e limpa IDs brutos
+        function parseDriveInput(input) {
+            let id = input.trim();
+            let isFolder = false;
+
+            if (id.includes('folders/')) {
+                id = id.split('folders/')[1].split('?')[0].split('/')[0];
+                isFolder = true;
+            } else if (id.includes('/d/')) {
+                id = id.split('/d/')[1].split('/')[0].split('?')[0];
+                isFolder = false;
+            } else if (id.length === 33) {
+                isFolder = true;
+            }
+            return { id, isFolder };
+        }
+
+        // Renderização das Matérias Laterais
+        function renderSubjects() {
+            const nav = document.getElementById('subjects-nav');
+            nav.innerHTML = '';
+            
+            Object.keys(studyData).forEach(key => {
+                const isActive = key === currentTab;
+                const container = document.createElement('div');
+                container.className = `group flex items-center justify-between w-full rounded-lg transition-all duration-300 text-xs font-medium ${isActive ? 'bg-purple-900/60 border border-purple-500/40 text-purple-200' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white border border-transparent'}`;
+                
+                container.innerHTML = `
+                    <button onclick="switchTab('${key}')" class="flex-1 text-left px-3 py-2.5 truncate font-semibold">
+                        ${studyData[key].title}
+                    </button>
+                    <button onclick="deleteSubject('${key}')" class="opacity-0 group-hover:opacity-100 p-2 text-gray-500 hover:text-red-400 transition-all font-bold text-[10px]" title="Excluir Matéria">✕</button>
+                `;
+                nav.appendChild(container);
+            });
+        }
+
+        // Troca de Aba com Efeito Glow Neon Customizado
+        function switchTab(tabKey) {
+            currentTab = tabKey;
+            renderSubjects();
+            
+            const data = studyData[tabKey];
+            document.getElementById('tab-title').innerText = `Arquivos de ${data.title.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, '').trim()}`;
+            
+            const listContainer = document.getElementById('files-list');
+            listContainer.innerHTML = '';
+
+            if (!data.files || data.files.length === 0) {
+                listContainer.innerHTML = `<p class="text-xs text-gray-600 italic p-4 text-center bg-gray-900/20 rounded-xl border border-dashed border-gray-800/60">Nenhum link ou pasta cadastrada.</p>`;
+                return;
+            }
+
+            data.files.forEach((file, index) => {
+                const isSelected = file.driveId === activeFileId;
+                const li = document.createElement('li');
+                
+                // Classes com Efeito Glow Neon Roxo Escuro Configurado
+                li.className = `group flex items-center justify-between w-full rounded-xl border transition-all duration-300 text-xs 
+                    ${isSelected 
+                        ? 'bg-purple-950/20 border-purple-500/60 text-purple-300 font-semibold shadow-[0_0_15px_rgba(147,51,234,0.25)]' 
+                        : 'bg-gray-900/30 border-gray-800/40 hover:bg-gray-900 hover:border-purple-500/50 hover:text-purple-200 hover:shadow-[0_0_18px_rgba(147,51,234,0.35)]'
+                    }`;
+                
+                li.innerHTML = `
+                    <button onclick="viewFile('${file.name}', '${file.driveId}')" class="flex-1 text-left p-3 truncate flex items-center gap-2">
+                        <span class="transition-transform group-hover:scale-110 duration-300 opacity-70">📄</span> 
+                        <span class="truncate">${file.name}</span>
+                    </button>
+                    <button onclick="deleteFile(${index})" class="opacity-0 group-hover:opacity-100 px-3 py-3 text-gray-500 hover:text-red-400 transition-all font-medium text-[10px]" title="Remover link">✕</button>
+                `;
+                listContainer.appendChild(li);
+            });
+        }
+
+        // Acionamento e Construção Dinâmica do Iframe (Arquivos ou Pastas)
+        function viewFile(name, rawInput) {
+            const { id, isFolder } = parseDriveInput(rawInput);
+            activeFileId = rawInput; 
+            
+            document.getElementById('current-file-name').innerText = `${isFolder ? '📁 Pasta: ' : '📄 Doc: '} ${name}`;
+            
+            const embedUrl = isFolder 
+                ? `https://drive.google.com/embeddedfolderview?id=${id}#list`
+                : `https://drive.google.com/file/d/${id}/preview`;
+                
+            const externalUrl = isFolder
+                ? `https://drive.google.com/drive/folders/${id}?usp=sharing`
+                : `https://drive.google.com/file/d/${id}/view?usp=sharing`;
+
+            const iframe = document.getElementById('drive-viewer');
+            const placeholder = document.getElementById('viewer-placeholder');
+            const externalLink = document.getElementById('open-external');
+
+            iframe.src = embedUrl;
+            iframe.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            
+            externalLink.href = externalUrl;
+            externalLink.classList.remove('hidden');
+
+            // Atualiza os estilos da lista para marcar o item ativo
+            switchTab(currentTab);
+        }
+
+        // Criar Nova Matéria
+        function createNewSubject() {
+            const input = document.getElementById('new-subject-name');
+            const name = input.value.trim();
+            if (!name) return;
+
+            const key = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+            if (studyData[key]) return alert('Esta matéria já existe!');
+
+            studyData[key] = { title: name, files: [] };
+            input.value = '';
+            currentTab = key;
+            
+            saveToStorage();
+            renderSubjects();
+            switchTab(key);
+        }
+
+        // Criar Novo Link de Arquivo/Pasta
+        function createNewFile() {
+            if (!currentTab) return alert('Por favor, crie uma matéria primeiro!');
+            
+            const nameInput = document.getElementById('new-file-name');
+            const idInput = document.getElementById('new-file-id');
+            const name = nameInput.value.trim();
+            const rawId = idInput.value.trim();
+
+            if (!name || !rawId) return alert('Preencha os dois campos!');
+
+            studyData[currentTab].files.push({ name: name, driveId: rawId });
+            nameInput.value = '';
+            idInput.value = '';
+
+            saveToStorage();
+            switchTab(currentTab);
+        }
+
+        // Exclusões de Instâncias
+        function deleteSubject(key) {
+            if(confirm(`Deseja apagar a matéria "${studyData[key].title}" e todos os seus links?`)) {
+                delete studyData[key];
+                currentTab = Object.keys(studyData)[0] || '';
+                saveToStorage();
+                renderSubjects();
+                if(currentTab) switchTab(currentTab);
+                else document.getElementById('files-list').innerHTML = '';
+            }
+        }
+
+        function deleteFile(index) {
+            studyData[currentTab].files.splice(index, 1);
+            saveToStorage();
+            switchTab(currentTab);
+        }
+
+        // --- CORE DO SISTEMA DE METAS ---
+        function renderTodos() {
+            const container = document.getElementById('todo-list');
+            container.innerHTML = '';
+
+            if (todoData.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-600 italic text-center py-6 opacity-60">Sem metas ativas.<br>Adicione uma tarefa!</p>`;
+                return;
+            }
+
+            todoData.forEach((todo, index) => {
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-2.5 rounded-lg bg-gray-950/40 border border-gray-800/80 text-xs transition-all duration-300 hover:border-purple-500/30`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 cursor-pointer flex-1 min-w-0" onclick="toggleTodo(${index})">
+                        <input type="checkbox" ${todo.done ? 'checked' : ''} class="w-3.5 h-3.5 rounded border-gray-700 text-purple-600 bg-gray-900 accent-purple-600 focus:ring-0">
+                        <span class="truncate ${todo.done ? 'line-through text-gray-600' : 'text-gray-300'}">${todo.text}</span>
+                    </div>
+                    <button onclick="deleteTodo(${index})" class="text-gray-600 hover:text-red-400 font-bold px-1.5 transition-colors">✕</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function addTodo() {
+            const input = document.getElementById('new-todo-text');
+            const text = input.value.trim();
+            if (!text) return;
+
+            todoData.push({ text: text, done: false });
+            input.value = '';
+            saveToStorage();
+            renderTodos();
+        }
+
+        function toggleTodo(index) {
+            todoData[index].done = !todoData[index].done;
+            saveToStorage();
+            renderTodos();
+        }
+
+        function deleteTodo(index) {
+            todoData.splice(index, 1);
+            saveToStorage();
+            renderTodos();
+        }
+
+        // Inicialização do Ecossistema
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSubjects();
+            if (currentTab) switchTab(currentTab);
+            renderTodos();
+        });
+    </script>
+</body>
+</html>
